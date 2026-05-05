@@ -1,4 +1,4 @@
-import enum, threading
+import enum, threading, time
 
 class Syscalls(enum.IntEnum):
     #I/O
@@ -50,11 +50,29 @@ def handle_input(proc, args):
     
 
 def handle_sleep(proc, args):
-    pass
+    proc["status"] = 0x01
+    t = int(args[0])
+    def wait_thread():
+        time.sleep(t)
+        proc["status"] = 0x00
+        
+    t = threading.Thread(target=wait_thread, daemon=True)
+    t.start()
+    return "eoo"
+
+def handle_exit(proc, args):
+    proc["status"] = 0x02
+    return "eoo"
+    
+def handle_getpid(proc, args):
+    return proc["pid"]
     
 handlers = {
     Syscalls.PRINT: handle_print,
-    Syscalls.INPUT: handle_input
+    Syscalls.INPUT: handle_input,
+    Syscalls.SLEEP: handle_sleep,
+    Syscalls.EXIT: handle_exit,
+    Syscalls.GETPID: handle_getpid
 }
 
 def handle_syscall(syscall, proc):

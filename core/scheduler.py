@@ -10,6 +10,7 @@ class Scheduler:
             for proc in self.programs:
                 if proc["state"] == 0x00:
                     try:
+             
                         syscall = next(proc["gen"])
                         if syscall:
                             sendto = syscalls.handle_syscall(syscall, proc)
