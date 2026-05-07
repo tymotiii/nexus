@@ -18,14 +18,15 @@ class Scheduler:
                                 proc["gen"].send(sendto)
                     except StopIteration:
                         proc["state"] = 0x02
-                elif proc["stdin_buffer"] is not None and proc["state"] == 0x01:
-                    proc["gen"].send(proc["stdin_buffer"])
-                    proc["stdin_buffer"] = None
+                elif proc["stdin"] is not None and proc["state"] == 0x01:
+                    proc["gen"].send(proc["stdin"])
+                    proc["stdin"] = None
+                    proc["state"] = 0x00
     def add_process(self, pname,gen):
         self.programs.append( {
             "pid": len(self.programs) + 1,
             "gen": gen,
             "state": 0x00,
             "name": pname,
-            "stdin_buffer": None
+            "stdin": None
         } )

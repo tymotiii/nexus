@@ -36,9 +36,9 @@ def handle_print(proc, args):
     
 def handle_input(proc, args):
     prompt = " ".join(args[0:]) if args else ""
-    proc["status"] = 0x01
+    proc["state"] = 0x01
     def on_input(text):
-        proc["stdin_buffer"] = text
+        proc["stdin"] = text
         
     def input_thread():
         text = input(prompt)
@@ -50,18 +50,18 @@ def handle_input(proc, args):
     
 
 def handle_sleep(proc, args):
-    proc["status"] = 0x01
+    proc["state"] = 0x01
     t = int(args[0])
     def wait_thread():
         time.sleep(t)
-        proc["status"] = 0x00
+        proc["state"] = 0x00
         
     t = threading.Thread(target=wait_thread, daemon=True)
     t.start()
     return "eoo"
 
 def handle_exit(proc, args):
-    proc["status"] = 0x02
+    proc["state"] = 0x02
     return "eoo"
     
 def handle_getpid(proc, args):
