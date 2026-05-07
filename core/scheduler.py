@@ -1,5 +1,3 @@
-import syscalls
-
 class Scheduler:
     def __init__(self):
         self.running = False
@@ -13,7 +11,7 @@ class Scheduler:
              
                         syscall = next(proc["gen"])
                         if syscall:
-                            sendto = syscalls.handle_syscall(syscall, proc)
+                            sendto = handle_syscall(syscall, proc)
                             if sendto != "eoo":
                                 proc["gen"].send(sendto)
                     except StopIteration:

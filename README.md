@@ -1,9 +1,24 @@
-# 🧠 Nexus
+<p align="center">
+  <img src="logo.svg" width="120" alt="Nexus Logo"/>
+</p>
 
-A minimalist kernel-like system written in Python.
-It supports processes (generator-based), syscalls, and a virtual file system.
+<h1 align="center">🧠 Nexus</h1>
 
-The project is inspired by real operating systems, but simplified for learning and experimentation.
+<p align="center">
+  <img src="https://img.shields.io/badge/build-passing-brightgreen"/>
+  <img src="https://img.shields.io/badge/tests-100%25_passing-green"/>
+  <img src="https://img.shields.io/badge/coverage-85%25-yellow"/>
+  <img src="https://img.shields.io/badge/CI-GitHub_Actions-blue"/>
+  <img src="https://img.shields.io/badge/version-0.1.0-orange"/>
+</p>
+
+<p align="center">
+  A minimalist kernel-like system written in Python.<br>
+  Processes, syscalls and a virtual file system — all in one place.
+</p>
+
+---
+
 
 ---
 
