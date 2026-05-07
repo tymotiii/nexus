@@ -1,23 +1,23 @@
 # 🧠 Nexus
 
-Minimalistyczny kernel-like system napisany w Pythonie.
-Obsługuje procesy (generator-based), syscalle i wirtualny system plików.
+A minimalist kernel-like system written in Python.
+It supports processes (generator-based), syscalls, and a virtual file system.
 
-Projekt inspirowany działaniem prawdziwych systemów operacyjnych, ale uproszczony do nauki i eksperymentów.
+The project is inspired by real operating systems, but simplified for learning and experimentation.
 
 ---
 
 ## 🚀 Features
 
-* ⚙️ Scheduler oparty o generatory (`yield`)
-* 📞 System syscalli (PRINT, INPUT, SLEEP, EXIT itd.)
-* 📁 Virtual File System (VFS) zapisany w JSON
-* 🧵 Pseudo-asynchroniczne operacje (threading)
-* 🔌 Modularna struktura projektu
+* ⚙️ Generator-based scheduler (`yield`)
+* 📞 Syscall system (PRINT, INPUT, SLEEP, EXIT, etc.)
+* 📁 Virtual File System (VFS) stored in JSON
+* 🧵 Pseudo-asynchronous operations (threading)
+* 🔌 Modular project structure
 
 ---
 
-## 📂 Struktura projektu
+## 📂 Project Structure
 
 nexus/
 ├── core/
@@ -31,29 +31,29 @@ nexus/
 
 ---
 
-## ⚙️ Jak to działa
+## ⚙️ How It Works
 
-### 🧵 Procesy
+### 🧵 Processes
 
-Proces to generator:
+A process is a Python generator:
 
 def program():
 yield (0x00, "Hello World")
-name = yield (0x01, "Imię: ")
-yield (0x00, "Hej", name)
+name = yield (0x01, "Name: ")
+yield (0x00, "Hello", name)
 yield (0x03,)
 
-Scheduler wykonuje procesy i interpretuje `yield` jako syscalle.
+The scheduler executes processes and interprets `yield` as syscalls.
 
 ---
 
-### 📞 Syscalle
+### 📞 Syscalls
 
-Każdy syscall to tuple:
+Each syscall is a tuple:
 
 (syscall_id, arg1, arg2, ...)
 
-Przykłady:
+Examples:
 
 0x00 → PRINT
 0x01 → INPUT
@@ -65,7 +65,7 @@ Przykłady:
 
 ### ⚙️ Scheduler
 
-Zarządza procesami:
+Manages process states:
 
 0x00 → RUNNING
 0x01 → WAITING
@@ -75,9 +75,9 @@ Zarządza procesami:
 
 ### 📁 VFS (Virtual File System)
 
-Dane trzymane w pliku `.vfs` (JSON).
+Data is stored in a `.vfs` file (JSON format).
 
-Przykład:
+Example:
 
 from fs.vfs import VFS
 
@@ -89,7 +89,7 @@ print(vfs.read_file("/docs/test.txt"))
 
 ---
 
-## ▶️ Jak uruchomić
+## ▶️ How to Run
 
 git clone https://github.com/tymotiii/nexus
 cd nexus
@@ -99,22 +99,22 @@ python main.py
 
 ## 🧠 Roadmap
 
-* [ ] SPAWN / KILL procesów
+* [ ] Process management (SPAWN / KILL)
 * [ ] IPC (SEND / RECV)
 * [ ] Memory management (ALLOC / FREE)
 * [ ] Permissions (rw, user space)
 * [ ] /proc-like system
-* [ ] Lepszy scheduler (priority, round-robin)
+* [ ] Better scheduler (priority, round-robin)
 
 ---
 
 ## ⚠️ Disclaimer
 
-To nie jest prawdziwy kernel.
-To symulacja do nauki i eksperymentów.
+This is not a real kernel.
+It is a simulation for learning and experimentation purposes.
 
 ---
 
-## 👤 Autor
+## 👤 Author
 
 Tymoti
