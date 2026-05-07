@@ -39,10 +39,10 @@ A process is a Python generator:
 
 ```python
 def program():
-yield (0x00, "Hello World")
-name = yield (0x01, "Name: ")
-yield (0x00, "Hello", name)
-yield (0x03,)
+    yield (0x00, "Hello World")
+    name = yield (0x01, "Name: ")
+    yield (0x00, "Hello", name)
+    yield (0x03,)
 ```
 
 The scheduler executes processes and interprets `yield` as syscalls.
@@ -92,11 +92,11 @@ print(vfs.read_file("/docs/test.txt"))
 ---
 
 ## ▶️ How to Run
-
+```shell
 git clone https://github.com/tymotiii/nexus
 cd nexus
 python main.py
-
+```
 ---
 
 ## 🧠 Roadmap
