@@ -1,3 +1,9 @@
+"""
+ViImage - compiled kernel
+build: 2026-05-16T11:12:37.420793
+"""
+
+# ===== core/!syscalls.py =====
 import enum, threading, time
 
 class Syscalls(enum.IntEnum):
@@ -102,3 +108,77 @@ def handle_syscall(syscall, proc, kernel):
         return handlers[syscall[0]](proc, syscall[1:], kernel)
     except Exception as e:
         return "ERR", e
+
+# ===== core/scheduler.py =====
+import time
+
+class Scheduler:
+    def __init__(self):
+        self.running = False
+        self.programs = []
+    def run(self):
+        self.running = True
+        while self.running:
+            time.sleep(0.001)
+            for proc in self.programs:
+                if proc["state"] == 0x00:
+                    try:
+                        syscall = next(proc["gen"])
+                        if syscall is None:
+                          continue
+                        status, result = handle_syscall(syscall, proc, self)
+                        if status == "OK":
+                            try:
+                                proc["gen"].send(result)
+                            except TypeError:
+                                # generator nie oczekuje send (pierwszy run)
+                                next(proc["gen"])
+                        elif status == "WAIT":
+                            continue
+                        else:
+                            proc["gen"].throw(Exception(result))
+
+                    except StopIteration:
+                        proc["state"] = 0x03
+                        print(f"Procces {proc["pid"]}exited with ERROR: exit code: {int(proc["state"]) - 0x02}" )
+                elif proc["stdin"] is not None and proc["state"] == 0x01:
+                    proc["gen"].send(proc["stdin"])
+                    proc["stdin"] = None
+                    proc["state"] = 0x00
+    def add_process(self, pname,gen, parentpid):
+        self.programs.append( {
+            "pid": len(self.programs) + 1,
+            "gen": gen,
+            "state": 0x00,
+            "name": pname,
+            "stdin": None,
+            "parent": parentpid
+        } )
+        return len(self.programs)
+
+# ===== bpy/preinit.py =====
+initf = None
+
+try:
+  with open("./sbpy/init.py", "r") as f:
+      initf = f.read()
+except Exception as e:
+  pass
+
+try:
+  with open("./init.py", "r") as f:
+      initf = f.read()
+except Exception as e:
+  pass
+
+if initf == None:
+    Exception("KERNEL PANIC!!!!!! NO INIT FILE")
+else:
+    loc = {}
+    exec(initf, {}, loc)
+    program = loc["run"]
+
+
+s = Scheduler()
+s.add_process("preinit", program(), 0)
+s.run()

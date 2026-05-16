@@ -5,7 +5,7 @@ from datetime import datetime
 CORE_FILES = [
     "core/!syscalls.py",
     "core/scheduler.py",
-    "core/!avfs.py",
+    "bpy/preinit.py"
 ]
 
 OUTPUT_FILE = "ViImage.py"

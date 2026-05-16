@@ -1,3 +1,5 @@
+import time
+
 class Scheduler:
     def __init__(self):
         self.running = False
@@ -5,26 +7,39 @@ class Scheduler:
     def run(self):
         self.running = True
         while self.running:
+            time.sleep(0.001)
             for proc in self.programs:
                 if proc["state"] == 0x00:
                     try:
-             
                         syscall = next(proc["gen"])
-                        if syscall:
-                            sendto = handle_syscall(syscall, proc)
-                            if sendto != "eoo":
-                                proc["gen"].send(sendto)
+                        if syscall is None:
+                          continue
+                        status, result = handle_syscall(syscall, proc, self)
+                        if status == "OK":
+                            try:
+                                proc["gen"].send(result)
+                            except TypeError:
+                                # generator nie oczekuje send (pierwszy run)
+                                next(proc["gen"])
+                        elif status == "WAIT":
+                            continue
+                        else:
+                            proc["gen"].throw(Exception(result))
+
                     except StopIteration:
-                        proc["state"] = 0x02
+                        proc["state"] = 0x03
+                        print(f"Procces {proc["pid"]}exited with ERROR: exit code: {int(proc["state"]) - 0x02}" )
                 elif proc["stdin"] is not None and proc["state"] == 0x01:
                     proc["gen"].send(proc["stdin"])
                     proc["stdin"] = None
                     proc["state"] = 0x00
-    def add_process(self, pname,gen):
+    def add_process(self, pname,gen, parentpid):
         self.programs.append( {
             "pid": len(self.programs) + 1,
             "gen": gen,
             "state": 0x00,
             "name": pname,
-            "stdin": None
+            "stdin": None,
+            "parent": parentpid
         } )
+        return len(self.programs)
