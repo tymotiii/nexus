@@ -1,6 +1,6 @@
 """
 ViImage - compiled kernel
-build: 2026-05-16T11:12:37.420793
+build: 2026-05-16T19:00:51.422102
 """
 
 # ===== core/!syscalls.py =====
@@ -35,11 +35,13 @@ class Syscalls(enum.IntEnum):
     READ_MEM  = 0x11
     WRITE_MEM = 0x12
 
+    IMPORT    = 0x14
+
 def handle_print(proc, args, krnl):
     print(" ".join(args[0:]))
     return "OK", "OK"
 
-def handle_input(proc, args):
+def handle_input(proc, args, krnl):
     prompt = " ".join(args[0:]) if args else ""
     proc["state"] = 0x01
     def on_input(text):
@@ -67,7 +69,6 @@ def handle_sleep(proc, args, krnl):
 
 def handle_exit(proc, args, krnl):
     proc["state"] = int(args[0]) + 0x02
-    print(f"Procces {proc["pid"]}exited with exit code: {int(proc["state"]) - 0x02}" )
     return "OK", "OK"
 
 def handle_getpid(proc, args, krnl):
@@ -88,6 +89,22 @@ def handle_write(proc,args,krnl):
     with open(args[0], "wb") as f:
         f.write(args[1])
         return "OK", "OK"
+import os,importlib
+
+def import_from_lib(name):
+    path = os.path.join("lib", name + ".py")
+
+    if not os.path.exists(path):
+        raise Exception(f"Module {name} not found in lib")
+
+    spec = importlib.util.spec_from_file_location(name, path)
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+
+    return module
+
+def handle_import(proc,args,krnl):
+    return import_from_lib(args[0])
 
 
 handlers = {
@@ -99,7 +116,8 @@ handlers = {
     Syscalls.GETPPID: handle_getppid,
     Syscalls.SPAWN: handle_spawn,
     Syscalls.READ: handle_read,
-    Syscalls.WRITE: handle_write
+    Syscalls.WRITE: handle_write,
+    Syscalls.IMPORT: handle_import
 
 }
 
@@ -140,7 +158,6 @@ class Scheduler:
 
                     except StopIteration:
                         proc["state"] = 0x03
-                        print(f"Procces {proc["pid"]}exited with ERROR: exit code: {int(proc["state"]) - 0x02}" )
                 elif proc["stdin"] is not None and proc["state"] == 0x01:
                     proc["gen"].send(proc["stdin"])
                     proc["stdin"] = None
@@ -157,6 +174,20 @@ class Scheduler:
         return len(self.programs)
 
 # ===== bpy/preinit.py =====
+import subprocess, sys, os
+def ensure_profile(name):
+    if f"--{name}" not in sys.argv:
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+
+        subprocess.Popen([
+            "wt",
+            "-p", name,
+            "cmd", "/k",
+            f'cd /d "{script_dir}" && py "{__file__}" --{name}'
+        ])
+
+        sys.exit()
+
 initf = None
 
 try:

@@ -1,3 +1,17 @@
+import subprocess, sys, os
+def ensure_profile(name):
+    if f"--{name}" not in sys.argv:
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+
+        subprocess.Popen([
+            "wt",
+            "-p", name,
+            "cmd", "/k",
+            f'cd /d "{script_dir}" && py "{__file__}" --{name}'
+        ])
+
+        sys.exit()
+ensure_profile("TVEMU")
 initf = None
 
 try:
@@ -21,5 +35,5 @@ else:
 
 
 s = Scheduler()
-s.add_process("preinit", program(), 0)
+s.add_process("preinit", program(), 0, {})
 s.run()

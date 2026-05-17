@@ -28,18 +28,18 @@ class Scheduler:
 
                     except StopIteration:
                         proc["state"] = 0x03
-                        print(f"Procces {proc["pid"]}exited with ERROR: exit code: {int(proc["state"]) - 0x02}" )
                 elif proc["stdin"] is not None and proc["state"] == 0x01:
                     proc["gen"].send(proc["stdin"])
                     proc["stdin"] = None
                     proc["state"] = 0x00
-    def add_process(self, pname,gen, parentpid):
+    def add_process(self, pname,gen, parentpid, envi):
         self.programs.append( {
             "pid": len(self.programs) + 1,
             "gen": gen,
             "state": 0x00,
             "name": pname,
             "stdin": None,
-            "parent": parentpid
+            "parent": parentpid,
+            "env": envi
         } )
         return len(self.programs)
