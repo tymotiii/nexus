@@ -5,8 +5,28 @@
 __attribute__((used)) static uint64_t limine_base_revision[3] = { 0xf7599279de2d6856, 0x1d26e50430284d62, 3 };
 
 __attribute__((used)) static volatile struct limine_framebuffer_request framebuffer_request = {
-    .id = LIMINE_FRAMEBUFFER_REQUEST,
-    .revision = 0
+    .id = LIMINE_FRAMEBUFFER_REQUEST, .revision = 0
+};
+
+__attribute__((used)) static volatile struct limine_module_request module_request = {
+    .id = LIMINE_MODULE_REQUEST, .revision = 0
+};
+
+// =========================================================================
+// STRUKTURA NAGŁÓWKA USTAR (TAR)
+// =========================================================================
+struct tar_header {
+    char name[100];
+    char mode[8];
+    char uid[8];
+    char gid[8];
+    char size[12];     // Rozmiar w systemie ósemkowym (octal ASCII)
+    char mtime[12];
+    char chksum[8];
+    char typeflag;
+    char linkname[100];
+    char magic[6];     // "ustar"
+    char version[2];
 };
 
 // =========================================================================
@@ -29,7 +49,6 @@ static const uint8_t ibm_vga_font[256][16] = {
     ['-'] = {0x00,0x00,0x00,0x00,0x00,0x7c,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00},
     ['.'] = {0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x10,0x10,0x00,0x00,0x00,0x00,0x00,0x00},
     ['/'] = {0x00,0x00,0x04,0x08,0x10,0x20,0x40,0x80,0x00,0x00,0x00,0x00,0x00,0x00,0x00,0x00},
-
     ['0'] = {0x00,0x00,0x38,0x44,0x4c,0x54,0x64,0x44,0x38,0x00,0x00,0x00,0x00,0x00,0x00,0x00},
     ['1'] = {0x00,0x00,0x10,0x30,0x10,0x10,0x10,0x10,0x10,0x38,0x00,0x00,0x00,0x00,0x00,0x00},
     ['2'] = {0x00,0x00,0x38,0x44,0x04,0x08,0x10,0x20,0x44,0x7c,0x00,0x00,0x00,0x00,0x00,0x00},
@@ -40,7 +59,6 @@ static const uint8_t ibm_vga_font[256][16] = {
     ['7'] = {0x00,0x00,0x7c,0x44,0x04,0x08,0x10,0x10,0x10,0x10,0x00,0x00,0x00,0x00,0x00,0x00},
     ['8'] = {0x00,0x00,0x38,0x44,0x44,0x38,0x44,0x44,0x38,0x00,0x00,0x00,0x00,0x00,0x00,0x00},
     ['9'] = {0x00,0x00,0x38,0x44,0x44,0x3c,0x04,0x44,0x38,0x00,0x00,0x00,0x00,0x00,0x00,0x00},
-
     [':'] = {0x00,0x00,0x00,0x10,0x10,0x00,0x00,0x10,0x10,0x00,0x00,0x00,0x00,0x00,0x00,0x00},
     [';'] = {0x00,0x00,0x00,0x10,0x10,0x00,0x00,0x10,0x10,0x08,0x00,0x00,0x00,0x00,0x00,0x00},
     ['<'] = {0x00,0x00,0x04,0x08,0x10,0x20,0x10,0x08,0x04,0x00,0x00,0x00,0x00,0x00,0x00,0x00},
@@ -48,7 +66,6 @@ static const uint8_t ibm_vga_font[256][16] = {
     ['>'] = {0x00,0x00,0x20,0x10,0x08,0x04,0x08,0x10,0x20,0x00,0x00,0x00,0x00,0x00,0x00,0x00},
     ['?'] = {0x00,0x00,0x38,0x44,0x04,0x08,0x10,0x00,0x10,0x10,0x00,0x00,0x00,0x00,0x00,0x00},
     ['@'] = {0x00,0x00,0x38,0x44,0x54,0x5c,0x58,0x40,0x3c,0x00,0x00,0x00,0x00,0x00,0x00,0x00},
-
     ['A'] = {0x00,0x00,0x10,0x28,0x44,0x44,0x7c,0x44,0x44,0x00,0x00,0x00,0x00,0x00,0x00,0x00},
     ['B'] = {0x00,0x00,0x78,0x44,0x44,0x78,0x44,0x44,0x78,0x00,0x00,0x00,0x00,0x00,0x00,0x00},
     ['C'] = {0x00,0x00,0x38,0x44,0x40,0x40,0x40,0x44,0x38,0x00,0x00,0x00,0x00,0x00,0x00,0x00},
@@ -75,7 +92,6 @@ static const uint8_t ibm_vga_font[256][16] = {
     ['X'] = {0x00,0x00,0x44,0x44,0x28,0x10,0x28,0x44,0x44,0x00,0x00,0x00,0x00,0x00,0x00,0x00},
     ['Y'] = {0x00,0x00,0x44,0x44,0x28,0x10,0x10,0x10,0x10,0x00,0x00,0x00,0x00,0x00,0x00,0x00},
     ['Z'] = {0x00,0x00,0x7c,0x04,0x08,0x10,0x20,0x40,0x7c,0x00,0x00,0x00,0x00,0x00,0x00,0x00},
-
     ['a'] = {0x00,0x00,0x00,0x00,0x38,0x04,0x3c,0x44,0x3c,0x00,0x00,0x00,0x00,0x00,0x00,0x00},
     ['b'] = {0x00,0x00,0x40,0x40,0x78,0x44,0x44,0x44,0x78,0x00,0x00,0x00,0x00,0x00,0x00,0x00},
     ['c'] = {0x00,0x00,0x00,0x00,0x38,0x44,0x40,0x44,0x38,0x00,0x00,0x00,0x00,0x00,0x00,0x00},
@@ -102,7 +118,6 @@ static const uint8_t ibm_vga_font[256][16] = {
     ['x'] = {0x00,0x00,0x00,0x00,0x44,0x28,0x10,0x28,0x44,0x00,0x00,0x00,0x00,0x00,0x00,0x00},
     ['y'] = {0x00,0x00,0x00,0x00,0x44,0x44,0x44,0x3c,0x04,0x44,0x38,0x00,0x00,0x00,0x00,0x00},
     ['z'] = {0x00,0x00,0x00,0x00,0x7c,0x08,0x10,0x20,0x7c,0x00,0x00,0x00,0x00,0x00,0x00,0x00},
-
     ['{'] = {0x00,0x0c,0x18,0x18,0x30,0x60,0x30,0x18,0x18,0x0c,0x00,0x00,0x00,0x00,0x00,0x00},
     ['|'] = {0x00,0x10,0x10,0x10,0x10,0x10,0x10,0x10,0x10,0x10,0x10,0x00,0x00,0x00,0x00,0x00},
     ['}'] = {0x00,0x30,0x18,0x18,0x0c,0x06,0x0c,0x18,0x18,0x30,0x00,0x00,0x00,0x00,0x00,0x00},
@@ -182,7 +197,7 @@ __attribute__((sysv_abi)) void draw_char(uint64_t x, uint64_t y, char c, uint32_
                 if (glyph[cy] & (1 << (7 - cx))) {
                     *pixel = color;
                 } else if (c == ' ') {
-                    *pixel = 0x00000000; // Explicitly wipe background for spaces
+                    *pixel = 0x00000000;
                 }
             }
         }
@@ -193,29 +208,20 @@ __attribute__((sysv_abi)) void terminal_putc(char c, uint32_t color) {
     if (c == '\n') {
         cursor_x = start_x;
         cursor_y += 16;
-        if (cursor_y + 16 > (int)fb_height) {
-            scroll_screen();
-        }
+        if (cursor_y + 16 > (int)fb_height) scroll_screen();
         return;
     }
-
     if (cursor_x + 8 > (int)fb_width) {
         cursor_x = start_x;
         cursor_y += 16;
-        if (cursor_y + 16 > (int)fb_height) {
-            scroll_screen();
-        }
+        if (cursor_y + 16 > (int)fb_height) scroll_screen();
     }
-
     draw_char((uint64_t)cursor_x, (uint64_t)cursor_y, c, color);
     cursor_x += 8;
 }
 
 void terminal_print(const char *str, uint32_t color) {
-    while (*str) {
-        terminal_putc(*str, color);
-        str++;
-    }
+    while (*str) { terminal_putc(*str, color); str++; }
 }
 
 void terminal_print_hex(uint64_t value, uint32_t color) {
@@ -223,17 +229,9 @@ void terminal_print_hex(uint64_t value, uint32_t color) {
     char buffer[16];
     int i = 0;
     terminal_print("0x", color);
-    if (value == 0) {
-        terminal_putc('0', color);
-        return;
-    }
-    while (value > 0) {
-        buffer[i++] = hex_digits[value & 0xF];
-        value >>= 4;
-    }
-    for (int j = i - 1; j >= 0; j--) {
-        terminal_putc(buffer[j], color);
-    }
+    if (value == 0) { terminal_putc('0', color); return; }
+    while (value > 0) { buffer[i++] = hex_digits[value & 0xF]; value >>= 4; }
+    for (int j = i - 1; j >= 0; j--) terminal_putc(buffer[j], color);
 }
 
 int str_ncmp(const char *s1, const char *s2, size_t n) {
@@ -245,72 +243,20 @@ int str_ncmp(const char *s1, const char *s2, size_t n) {
     return 0;
 }
 
-// =========================================================================
-// KEYBOARD BUFFER SYSTEM WITH BACKSPACE SCOPE
-// =========================================================================
-static const char kbd_scancode_map[128] = {
-    0,  27, '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '=', '\b', /* 0x0E is Backspace mapped to '\b' */
-  '\t', 'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p', '[', ']', '\n',
-    0,  'a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', ';', '\'', '`',   0,
-  '\\', 'z', 'x', 'c', 'v', 'b', 'n', 'm', ',', '.', '/',   0, '*',   0, ' '
-};
-
-#define KBD_BUFFER_SIZE 256
-static volatile char kbd_buffer[KBD_BUFFER_SIZE];
-static volatile int kbd_head = 0;
-static volatile int kbd_tail = 0;
-
-void kbd_push_char(char c) {
-    int next = (kbd_head + 1) % KBD_BUFFER_SIZE;
-    if (next != kbd_tail) {
-        kbd_buffer[kbd_head] = c;
-        kbd_head = next;
+// Pomocnicza funkcja parsująca rozmiar pliku z ósemkowego formatu ASCII w TAR
+uint64_t tar_octal_to_int(const char *octal, int size) {
+    uint64_t res = 0;
+    for (int i = 0; i < size; i++) {
+        if (octal[i] < '0' || octal[i] > '7') break;
+        res = (res << 3) + (octal[i] - '0');
     }
-}
-
-char kbd_pop_char(void) {
-    if (kbd_head == kbd_tail) return 0;
-    char c = kbd_buffer[kbd_tail];
-    kbd_tail = (kbd_tail + 1) % KBD_BUFFER_SIZE;
-    return c;
+    return res;
 }
 
 // =========================================================================
-// IDT STRUCTURES
+// SZEF (SCHEDULER) Z DYNAMICZNYM GENEROWANIEM PROCESÓW
 // =========================================================================
-struct idt_entry {
-    uint16_t isr_low;
-    uint16_t kernel_cs;
-    uint8_t  ist;
-    uint8_t  attributes;
-    uint16_t isr_mid;
-    uint32_t isr_high;
-    uint32_t reserved;
-} __attribute__((packed));
-
-struct idtr {
-    uint16_t limit;
-    uint64_t base;
-} __attribute__((packed));
-
-static struct idt_entry idt[256];
-static struct idtr idtr_pointer;
-
-void idt_set_descriptor(uint8_t vector, void* isr, uint8_t flags) {
-    uint64_t addr = (uint64_t)isr;
-    idt[vector].isr_low    = addr & 0xFFFF;
-    idt[vector].kernel_cs  = 0x28;
-    idt[vector].ist        = 0;
-    idt[vector].attributes = flags;
-    idt[vector].isr_mid    = (addr >> 16) & 0xFFFF;
-    idt[vector].isr_high   = (addr >> 32) & 0xFFFFFFFF;
-    idt[vector].reserved   = 0;
-}
-
-// =========================================================================
-// SCHEDULER (MUTED)
-// =========================================================================
-#define MAX_TASKS 3
+#define MAX_TASKS 4
 #define STACK_SIZE 8192
 
 typedef struct {
@@ -347,154 +293,180 @@ void create_task(void (*entry_point)(void)) {
 }
 
 // =========================================================================
-// HANDLERS LOGIC
+// PARSER TAR + EXEC Z RAMDYSKU
 // =========================================================================
+// Miejsce alokacji pamięci na uruchomiony proces (uproszczony allocator pod sztywny adres)
+static uint8_t *process_memory_pool = (uint8_t*)0x2000000;
+
+void load_and_exec_from_tar(uint64_t tar_addr, uint64_t tar_size, const char *filename) {
+    uint64_t offset = 0;
+
+    while (offset < tar_size) {
+        struct tar_header *header = (struct tar_header *)(tar_addr + offset);
+
+        // Jeśli nazwa jest pusta, osiągnęliśmy koniec archiwum
+        if (header->name[0] == '\0') break;
+
+        uint64_t file_size = tar_octal_to_int(header->size, 12);
+
+        // Szukamy pliku binarnego (porównujemy ze ścieżką w TAR, np. "etc/test.bin")
+        if (str_ncmp(header->name, filename, 100) == 0) {
+            terminal_print("[nexus] tar: found matched file path -> ", 0xFFFFFF);
+            terminal_print(header->name, 0xFFFFFF);
+            terminal_print("\n", 0xFFFFFF);
+
+            // Dane pliku znajdują się zaraz za 512-bajtowym nagłówkiem
+            uint8_t *file_data = (uint8_t *)(tar_addr + offset + 512);
+
+            // Kopiujemy kod maszynowy pod adres, pod którym został skompilowany (0x2000000)
+            for (uint64_t i = 0; i < file_size; i++) {
+                process_memory_pool[i] = file_data[i];
+            }
+
+            terminal_print("[nexus] tar: copied code to process execution field -> ", 0xFFFFFF);
+            terminal_print_hex((uint64_t)process_memory_pool, 0xFFFFFF);
+            terminal_print("\n", 0xFFFFFF);
+
+            // Dodajemy nowy proces z RAMdysku do schedulera!
+            create_task((void (*)(void))process_memory_pool);
+            terminal_print("[nexus] sched: user process attached successfully as multitasking node\n", 0xFFFFFF);
+            return;
+        }
+
+        // Przeskakujemy do następnego bloku (nagłówek 512 bajtów + zaokrąglony rozmiar pliku do bloków 512-bajtowych)
+        offset += 512 + ((file_size + 511) / 512) * 512;
+    }
+
+    terminal_print("[nexus] tar: executable file not found in initramfs rootfs\n", 0xFFFFFF);
+}
+
+// =========================================================================
+// FUNKCJE INICJALIZACYJNE (TOTALNIE BIAŁE LOGI SYSTEMOWE)
+// =========================================================================
+static const char kbd_scancode_map[128] = {
+    0,  27, '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '=', '\b',
+  '\t', 'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p', '[', ']', '\n',
+    0,  'a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', ';', '\'', '`',   0,
+  '\\', 'z', 'x', 'c', 'v', 'b', 'n', 'm', ',', '.', '/',   0, '*',   0, ' '
+};
+
+#define KBD_BUFFER_SIZE 256
+static volatile char kbd_buffer[KBD_BUFFER_SIZE];
+static volatile int kbd_head = 0; static volatile int kbd_tail = 0;
+
+void kbd_push_char(char c) {
+    int next = (kbd_head + 1) % KBD_BUFFER_SIZE;
+    if (next != kbd_tail) { kbd_buffer[kbd_head] = c; kbd_head = next; }
+}
+char kbd_pop_char(void) {
+    if (kbd_head == kbd_tail) return 0;
+    char c = kbd_buffer[kbd_tail]; kbd_tail = (kbd_tail + 1) % KBD_BUFFER_SIZE;
+    return c;
+}
+
+struct idt_entry { uint16_t isr_low; uint16_t kernel_cs; uint8_t ist; uint8_t attributes; uint16_t isr_mid; uint32_t isr_high; uint32_t reserved; } __attribute__((packed));
+struct idtr { uint16_t limit; uint64_t base; } __attribute__((packed));
+static struct idt_entry idt[256]; static struct idtr idtr_pointer;
+
+void idt_set_descriptor(uint8_t vector, void* isr, uint8_t flags) {
+    uint64_t addr = (uint64_t)isr;
+    idt[vector].isr_low = addr & 0xFFFF; idt[vector].kernel_cs = 0x28; idt[vector].ist = 0; idt[vector].attributes = flags;
+    idt[vector].isr_mid = (addr >> 16) & 0xFFFF; idt[vector].isr_high = (addr >> 32) & 0xFFFFFFFF; idt[vector].reserved = 0;
+}
+
 __attribute__((sysv_abi)) void keyboard_handler_main(void) {
     uint8_t scancode = inb(0x60);
-    if (!(scancode & 0x80)) {
-        char ascii = kbd_scancode_map[scancode];
-        if (ascii != 0) {
-            kbd_push_char(ascii);
-        }
-    }
+    if (!(scancode & 0x80)) { char ascii = kbd_scancode_map[scancode]; if (ascii != 0) kbd_push_char(ascii); }
 }
 
 void pit_handler(void);
-__asm__(
-    ".global pit_handler\n"
-    "pit_handler:\n"
-    "push %rax; push %rbx; push %rcx; push %rdx; push %rsi; push %rdi; push %rbp;\n"
-    "push %r8; push %r9; push %r10; push %r11; push %r12; push %r13; push %r14; push %r15;\n"
-    "mov $0x20, %al\n"
-    "out %al, $0x20\n"
-    "mov %rsp, %rdi\n"
-    "call schedule_from_isr\n"
-    "mov %rax, %rsp\n"
-    "pop %r15; pop %r14; pop %r13; pop %r12; pop %r11; pop %r10; pop %r9; pop %r8;\n"
-    "pop %rbp; pop %rdi; pop %rsi; pop %rdx; pop %rcx; pop %rbx; pop %rax;\n"
-    "iretq\n"
-);
+__asm__(".global pit_handler\npit_handler:\npush %rax; push %rbx; push %rcx; push %rdx; push %rsi; push %rdi; push %rbp;\npush %r8; push %r9; push %r10; push %r11; push %r12; push %r13; push %r14; push %r15;\nmov $0x20, %al\nout %al, $0x20\nmov %rsp, %rdi\ncall schedule_from_isr\nmov %rax, %rsp\npop %r15; pop %r14; pop %r13; pop %r12; pop %r11; pop %r10; pop %r9; pop %r8;\npop %rbp; pop %rdi; pop %rsi; pop %rdx; pop %rcx; pop %rbx; pop %rax;\niretq\n");
 
 void keyboard_handler(void);
-__asm__(
-    ".global keyboard_handler\n"
-    "keyboard_handler:\n"
-    "push %rax; push %rbx; push %rcx; push %rdx; push %rsi; push %rdi; push %rbp;\n"
-    "push %r8; push %r9; push %r10; push %r11; push %r12; push %r13; push %r14; push %r15;\n"
-    "call keyboard_handler_main\n"
-    "mov $0x20, %al\n"
-    "out %al, $0x20\n"
-    "pop %r15; pop %r14; pop %r13; pop %r12; pop %r11; pop %r10; pop %r9; pop %r8;\n"
-    "pop %rbp; pop %rdi; pop %rsi; pop %rdx; pop %rcx; pop %rbx; pop %rax;\n"
-    "iretq\n"
-);
+__asm__(".global keyboard_handler\nkeyboard_handler:\npush %rax; push %rbx; push %rcx; push %rdx; push %rsi; push %rdi; push %rbp;\npush %r8; push %r9; push %r10; push %r11; push %r12; push %r13; push %r14; push %r15;\ncall keyboard_handler_main\nmov $0x20, %al\nout %al, $0x20\npop %r15; pop %r14; pop %r13; pop %r12; pop %r11; pop %r10; pop %r9; pop %r8;\npop %rbp; pop %rdi; pop %rsi; pop %rdx; pop %rcx; pop %rbx; pop %rax;\niretq\n");
 
-// =========================================================================
-// SEQUENTIAL STEP BOOT SYSTEM
-// =========================================================================
 void init_idt(void) {
-    terminal_print("[step 1/4] init_idt(): Building Interrupt Descriptor Table layout...\n", 0x00FFFF);
-    idt_set_descriptor(32, (void*)pit_handler,       0x8E);
-    idt_set_descriptor(33, (void*)keyboard_handler,  0x8E);
-    idtr_pointer.limit = (sizeof(struct idt_entry) * 256) - 1;
-    idtr_pointer.base  = (uint64_t)&idt;
-    terminal_print("  |_ IDT Pointer Base located at memory: ", 0x00AAFF);
-    terminal_print_hex(idtr_pointer.base, 0x00AAFF);
-    terminal_print("\n", 0x00AAFF);
+    terminal_print("[nexus] idt: initializing gate descriptors for x86_64 architecture\n", 0xFFFFFF);
+    idt_set_descriptor(32, (void*)pit_handler, 0x8E);
+    idt_set_descriptor(33, (void*)keyboard_handler, 0x8E);
+    idtr_pointer.limit = (sizeof(struct idt_entry) * 256) - 1; idtr_pointer.base = (uint64_t)&idt;
     __asm__ volatile("lidt %0" : : "m"(idtr_pointer));
-    terminal_print("  |_ SUCCESS: IDT structure flashed into CPU register via 'lidt'.\n", 0x00FF00);
+    terminal_print("[nexus] idt: payload flashed at ", 0xFFFFFF);
+    terminal_print_hex(idtr_pointer.base, 0xFFFFFF);
+    terminal_print("\n", 0xFFFFFF);
 }
 
 void init_pic(void) {
-    terminal_print("[step 2/4] init_pic(): Remapping Dual 8259 PIC vectors configuration...\n", 0x00FFFF);
-    outb(0x20, 0x11); outb(0xA0, 0x11);
-    outb(0x21, 0x20); outb(0xA1, 0x28);
-    outb(0x21, 0x04); outb(0xA1, 0x02);
-    outb(0x21, 0x01); outb(0xA1, 0x01);
+    terminal_print("[nexus] pic: reprogramming dual 8259 master/slave chips\n", 0xFFFFFF);
+    outb(0x20, 0x11); outb(0xA0, 0x11); outb(0x21, 0x20); outb(0xA1, 0x28);
+    outb(0x21, 0x04); outb(0xA1, 0x02); outb(0x21, 0x01); outb(0xA1, 0x01);
     outb(0x21, 0xFC); outb(0xA1, 0xFF);
-    terminal_print("  |_ PIC Master mapped to offset 32, Slave to offset 40.\n", 0x00AAFF);
-    terminal_print("  |_ SUCCESS: Hardware lines IRQ0 and IRQ1 unmasked successfully.\n", 0x00FF00);
+    terminal_print("[nexus] pic: remapping complete, irq lines unmasked\n", 0xFFFFFF);
 }
 
 void init_pit(void) {
-    terminal_print("[step 3/4] init_pit(): Tuning 8253 PIT oscillator chip frequency...\n", 0x00FFFF);
+    terminal_print("[nexus] pit: latching 8253 oscillator system frequency to ~50hz\n", 0xFFFFFF);
     uint32_t divisor = 1193182 / 50;
-    outb(0x43, 0x36);
-    outb(0x40, (uint8_t)(divisor & 0xFF));
-    outb(0x40, (uint8_t)((divisor >> 8) & 0xFF));
-    terminal_print("  |_ Channel 0 frequency latch loaded with divider: ", 0x00AAFF);
-    terminal_print_hex(divisor, 0x00AAFF);
-    terminal_print(" (~50Hz)\n", 0x00AAFF);
-    terminal_print("  |_ SUCCESS: System hardware clock pulse ticking.\n", 0x00FF00);
+    outb(0x43, 0x36); outb(0x40, (uint8_t)(divisor & 0xFF)); outb(0x40, (uint8_t)((divisor >> 8) & 0xFF));
+    terminal_print("[nexus] pit: hardware clock ticking (divisor: ", 0xFFFFFF);
+    terminal_print_hex(divisor, 0xFFFFFF);
+    terminal_print("\n", 0xFFFFFF);
 }
 
 void init_scheduler(void) {
-    terminal_print("[step 4/4] init_scheduler(): Spawning concurrent thread execution nodes...\n", 0x00FFFF);
+    terminal_print("[nexus] sched: initializing multi-task subsystem nodes\n", 0xFFFFFF);
     extern void task_alpha(void);
-    extern void task_beta(void);
     create_task(task_alpha);
-    create_task(task_beta);
     scheduler_ready = 1;
-    terminal_print("  |_ SUCCESS: Multitasking engine flag state flipped to READY.\n", 0x00FF00);
+    terminal_print("[nexus] sched: ready, contexts generated successfully\n", 0xFFFFFF);
 }
 
 void task_alpha(void) { while(1) { for(volatile int i=0; i<50000000; i++); } }
-void task_beta(void)  { while(1) { for(volatile int i=0; i<50000000; i++); } }
 
 // =========================================================================
-// MINIMAL INTERACTIVE SHELL LOGIC (WITH BACKSPACE REPL SUPPORT)
+// POWŁOKA SYSTEMOWA (INTERACTIVE SHELL)
 // =========================================================================
 #define CMD_BUFFER_SIZE 64
 static char cmd_line[CMD_BUFFER_SIZE];
 static int cmd_idx = 0;
-
-void execute_command(void) {
-    if (str_ncmp(cmd_line, "echo ", 5) == 0) {
-        terminal_print(&cmd_line[5], 0xFFFFFF);
-        terminal_print("\n", 0xFFFFFF);
-    } else if (str_ncmp(cmd_line, "echo", 4) == 0 && cmd_line[4] == '\0') {
-        terminal_print("\n", 0xFFFFFF);
-    } else {
-        terminal_print("nexus_sh: command not found: ", 0xFF0000);
-        terminal_print(cmd_line, 0xFF0000);
-        terminal_print("\n", 0xFF0000);
-    }
-}
 
 void shell_step(void) {
     char c = kbd_pop_char();
     if (c == 0) return;
 
     if (c == '\b') {
-        // BACKSPACE LOGIC
         if (cmd_idx > 0) {
-            cmd_idx--; // Step 1: Remove from logical array buffer
-
-            // Step 2: Visual erase on screen
+            cmd_idx--;
             if (cursor_x >= start_x + 8) {
-                cursor_x -= 8;                      // Move graphics pointer 1 char back
-                draw_char(cursor_x, cursor_y, ' ', 0); // Overwrite old char with blank space
+                cursor_x -= 8;
+                draw_char(cursor_x, cursor_y, ' ', 0xFFFFFF);
             }
         }
     } else if (c == '\n') {
-        terminal_print("\n", 0xFFFFFFFF);
+        terminal_print("\n", 0xFFFFFF);
         cmd_line[cmd_idx] = '\0';
-        if (cmd_idx > 0) {
-            execute_command();
+
+        if (str_ncmp(cmd_line, "echo ", 5) == 0) {
+            terminal_print(&cmd_line[5], 0xFFFFFF);
+            terminal_print("\n", 0xFFFFFF);
+        } else if (cmd_idx > 0) {
+            terminal_print("nexus_sh: command not found: ", 0xFFFFFF);
+            terminal_print(cmd_line, 0xFFFFFF);
+            terminal_print("\n", 0xFFFFFF);
         }
+
         cmd_idx = 0;
-        terminal_print("nexus_sh> ", 0x00FF00);
+        terminal_print("nexus_sh> ", 0xFFFFFF);
     } else {
-        // Regular characters entry
         if (cmd_idx < CMD_BUFFER_SIZE - 1) {
             cmd_line[cmd_idx++] = c;
-            terminal_putc(c, 0xFFFFFFFF);
+            terminal_putc(c, 0xFFFFFF);
         }
     }
 }
 
 // =========================================================================
-// MAIN EXECUTIVE ENTRY
+// GŁÓWNY PUNKT WEJŚCIA JĄDRA
 // =========================================================================
 void _start(void) {
     if (limine_base_revision[2] == 1) halt();
@@ -502,27 +474,35 @@ void _start(void) {
 
     struct limine_framebuffer *fb = framebuffer_request.response->framebuffers[0];
     fb_address = (uint32_t*)fb->address;
-    pitch_in_bytes = fb->pitch;
-    fb_width = fb->width;
-    fb_height = fb->height;
+    pitch_in_bytes = fb->pitch; fb_width = fb->width; fb_height = fb->height;
 
     clear_screen(0x00000000);
 
-    terminal_print("====================================================\n", 0x00FF00);
-    terminal_print("          NEXUS KERNEL VERBOSE BOOT SEQUENCE        \n", 0x00FF00);
-    terminal_print("====================================================\n\n", 0x00FF00);
+    // TOTALNIE BIAŁE LOGOWANIE BEZ KOLORÓW
+    terminal_print("[nexus] boot: stage x86_64 visual framebuffer loaded successfully\n", 0xFFFFFF);
 
     init_idt();
     init_pic();
     init_pit();
     init_scheduler();
 
-    terminal_print("\n[nexus] All boot steps executed. Enabling processor interrupts...\n", 0xFFFFFF);
-    __asm__ volatile("sti");
-    terminal_print("[nexus] Global CPU STI Interrupt flag active. Core engine stable.\n\n", 0x00FF00);
+    // PROCES PARSOWANIA I ŁADOWANIA NASZEGO ET_TEST.BIN Z MODUŁU .TAR
+    terminal_print("[nexus] initramfs: probing limine module sub-requests...\n", 0xFFFFFF);
+    if (module_request.response != NULL && module_request.response->module_count > 0) {
+        struct limine_file *initramfs_file = module_request.response->modules[0];
 
-    terminal_print("Welcome to NexusOS Minimal Shell (v0.2-backspace)\n", 0xFFFF00);
-    terminal_print("nexus_sh> ", 0x00FF00);
+        // Wywołujemy szukanie pliku "etc/test.bin" wewnątrz .tar
+        load_and_exec_from_tar((uint64_t)initramfs_file->address, initramfs_file->size, "./etc/test.bin");
+    } else {
+        terminal_print("[nexus] initramfs: core modules missing from system memory!\n", 0xFFFFFF);
+    }
+
+    terminal_print("[nexus] boot: hardware setup completed, execution vector core operational\n", 0xFFFFFF);
+    terminal_print("[nexus] cpu: internal local unmasking (sti context state swap)\n", 0xFFFFFF);
+    __asm__ volatile("sti");
+
+    terminal_print("\nWelcome to NexusOS (v0.4-pure-white-debug)\n", 0xFFFFFF);
+    terminal_print("nexus_sh> ", 0xFFFFFF);
 
     while(1) {
         shell_step();
