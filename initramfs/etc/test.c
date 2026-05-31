@@ -1,19 +1,24 @@
-// Zamiast stdint.h definiujemy podstawowe typy wbudowane w architekturę x86_64
-typedef unsigned int        uint32_t;
-typedef unsigned long long  uint64_t;
+#define SYS_PRINT 1
 
-// Informujemy kompilator o funkcji z jądra
-extern void terminal_print(const char *str, uint32_t color);
+static inline unsigned long long syscall(
+    unsigned long long num,
+    unsigned long long arg1,
+    unsigned long long arg2)
+{
+    register unsigned long long rdi asm("rdi") = num;
+    register unsigned long long rsi asm("rsi") = arg1;
+    register unsigned long long rdx asm("rdx") = arg2;
+    register unsigned long long rax asm("rax");
+
+    __asm__ volatile("syscall"
+        : "=a"(rax)
+        : "r"(rdi), "r"(rsi), "r"(rdx)
+        : "rcx", "r11", "memory"
+    );
+    return rax;
+}
 
 void _start(void) {
-    // Przypisujemy adres do wskaźnika, aby wymusić bezpieczny 64-bitowy skok absolutny
-    void (*print)(const char*, uint32_t) = terminal_print;
-
-    // Wywołujemy funkcję przez wskaźnik!
-    print("Welcome from test.c!", 0xFFFFFFFF);
-
-    while(1) {
-        // Nasza pętla procesu
-        for(volatile int i = 0; i < 10000000; i++);
-    }
+    syscall(SYS_PRINT, (unsigned long long)"Hello from user mode!\n", 0xFFFFFF);
+    while(1) __asm__ volatile("hlt");
 }
